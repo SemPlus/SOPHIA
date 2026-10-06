@@ -19,9 +19,7 @@ service cloud.firestore {
       allow list: if false;
       allow create: if isOwner(userId) && 
         incoming().uid == userId &&
-        incoming().email is string &&
-        incoming().xp is int &&
-        incoming().level is int;
+        incoming().email is string;
       allow update: if isOwner(userId) &&
         incoming().diff(existing()).affectedKeys().hasOnly(['xp', 'level', 'streak', 'lastActive', 'photoURL', 'displayName']);
     }
@@ -30,25 +28,21 @@ service cloud.firestore {
     match /users/{userId}/progress/{progressId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) &&
-        incoming().userId == userId &&
-        incoming().itemId is string;
+        incoming().userId == userId;
     }
 
     // Mastery Levels
     match /users/{userId}/mastery/{disciplineId} {
       allow read: if isOwner(userId);
       allow write: if isOwner(userId) &&
-        incoming().userId == userId &&
-        incoming().discipline is string;
+        incoming().userId == userId;
     }
 
     // Retention Deck (Flashcards)
     match /users/{userId}/flashcards/{cardId} {
       allow read: if isOwner(userId);
       allow write: if isOwner(userId) &&
-        incoming().userId == userId &&
-        incoming().front is string &&
-        incoming().back is string;
+        incoming().userId == userId;
     }
 
     // Connection Test
