@@ -1,0 +1,8 @@
+{
+  "name": "Athenaeum",
+  "description": "A sanctuary for cultural enrichment. Master classical music, art history, and global literature through daily guided journeys and sophisticated AI dialogues.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

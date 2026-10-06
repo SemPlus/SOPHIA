@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Core profile for scholars in the Athenaeum.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "xp": { "type": "integer" },
+        "level": { "type": "integer" },
+        "streak": { "type": "integer" },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "xp", "level"]
+    },
+    "Progress": {
+      "title": "Learning Progress",
+      "description": "Records of completed lessons and achievements.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "itemId": { "type": "string" },
+        "itemType": { "type": "string", "enum": ["lesson", "quiz", "training"] },
+        "score": { "type": "integer" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "category": { "type": "string" }
+      },
+      "required": ["userId", "itemId", "itemType", "completedAt"]
+    },
+    "Mastery": {
+      "title": "Subject Mastery",
+      "description": "Detailed mastery level for specific cultural disciplines.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "discipline": { "type": "string" },
+        "level": { "type": "integer" },
+        "points": { "type": "integer" },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "discipline", "level", "points"]
+    },
+    "Flashcard": {
+      "title": "Retention Flashcard",
+      "description": "A single piece of cultural knowledge for spaced repetition training.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "discipline": { "type": "string" },
+        "front": { "type": "string" },
+        "back": { "type": "string" },
+        "nextReview": { "type": "string", "format": "date-time" },
+        "interval": { "type": "integer" },
+        "ease": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "discipline", "front", "back", "nextReview"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Global scholar profiles."
+    },
+    "users/{userId}/progress/{progressId}": {
+      "schema": "Progress",
+      "description": "Individual learning history."
+    },
+    "users/{userId}/mastery/{disciplineId}": {
+      "schema": "Mastery",
+      "description": "Discipline-specific mastery scores."
+    },
+    "users/{userId}/flashcards/{cardId}": {
+      "schema": "Flashcard",
+      "description": "Personalized retention deck."
+    }
+  }
+}

@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-[#FBF9F5] text-stone-900 font-sans antialiased selection:bg-stone-200 selection:text-stone-900;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  .prose-editorial {
+    @apply font-serif text-lg leading-relaxed text-stone-800;
+  }
+}

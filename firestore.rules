@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helpers
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // User Profiles
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isOwner(userId) && 
+        incoming().uid == userId &&
+        incoming().email is string &&
+        incoming().xp is int &&
+        incoming().level is int;
+      allow update: if isOwner(userId) &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['xp', 'level', 'streak', 'lastActive', 'photoURL', 'displayName']);
+    }
+
+    // Progress Tracking
+    match /users/{userId}/progress/{progressId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+        incoming().userId == userId &&
+        incoming().itemId is string;
+    }
+
+    // Mastery Levels
+    match /users/{userId}/mastery/{disciplineId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) &&
+        incoming().userId == userId &&
+        incoming().discipline is string;
+    }
+
+    // Retention Deck (Flashcards)
+    match /users/{userId}/flashcards/{cardId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) &&
+        incoming().userId == userId &&
+        incoming().front is string &&
+        incoming().back is string;
+    }
+
+    // Connection Test
+    match /test/connection {
+      allow read: if isSignedIn();
+    }
+  }
+}
