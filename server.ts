@@ -24,7 +24,7 @@ async function createServer() {
     }
   });
 
-  console.log("Initializing Athenaeum server...");
+  console.log("Initializing SOPHIA server...");
 
   // Context-Aware Daily Guided Lesson Generator
   app.post('/api/gemini/lesson', async (req, res) => {
@@ -262,7 +262,7 @@ async function createServer() {
 
   const PORT = 3000;
   app.listen(PORT, () => {
-    console.log(`Athenaeum server running on port ${PORT}`);
+    console.log(`SOPHIA server running on port ${PORT}`);
   });
 }
 

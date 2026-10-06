@@ -1,6 +1,6 @@
 {
-  "name": "Athenaeum",
-  "description": "A sanctuary for cultural enrichment. Master classical music, art history, and global literature through daily guided journeys and sophisticated AI dialogues.",
+  "name": "SOPHIA",
+  "description": "A massive digital sanctuary for global wisdom and cultural mastery. Explore thousands of years of human achievement through context-aware learning journeys.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

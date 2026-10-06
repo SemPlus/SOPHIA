@@ -50,7 +50,7 @@ const Navbar = () => {
     <nav className="sticky top-0 z-40 bg-[#FBF9F5]/80 backdrop-blur-md border-b border-stone-200 lg:hidden">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xl font-serif font-bold tracking-tight text-stone-900">Athenaeum</span>
+          <span className="text-xl font-serif font-bold tracking-tight text-stone-900">SOPHIA</span>
           {!isOnline && (
             <WifiOff className="w-3 h-3 text-stone-400" />
           )}
@@ -910,7 +910,7 @@ const MainContent = () => {
         <div className="w-12 h-12 border-4 border-stone-200 border-t-stone-900 rounded-full animate-spin" />
         <div>
           <p className="font-serif italic text-stone-500 tracking-wide text-lg">Consulting the archives...</p>
-          <p className="text-xs text-stone-400 mt-2 uppercase tracking-widest font-sans">Connecting to Sanctuary</p>
+          <p className="text-xs text-stone-400 mt-2 uppercase tracking-widest font-sans">Connecting to SOPHIA</p>
         </div>
       </div>
     );
@@ -1009,7 +1009,7 @@ const MainContent = () => {
           <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-stone-900">
             <BookMarked className="w-5 h-5" />
           </div>
-          <span className="text-xl font-serif font-bold tracking-tight">Athenaeum</span>
+          <span className="text-xl font-serif font-bold tracking-tight">SOPHIA</span>
         </div>
 
         <nav className="space-y-2">

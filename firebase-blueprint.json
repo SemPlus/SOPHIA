@@ -2,7 +2,7 @@
   "entities": {
     "UserProfile": {
       "title": "User Profile",
-      "description": "Core profile for scholars in the Athenaeum.",
+      "description": "Core profile for scholars in SOPHIA.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
