@@ -1,10 +1,10 @@
 import express from 'express';
+import cors from 'cors';
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { createServer as createViteServer } from 'vite';
 
 dotenv.config();
 
@@ -12,6 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const ai = new GoogleGenAI({
@@ -22,8 +23,6 @@ const ai = new GoogleGenAI({
     }
   }
 });
-
-console.log("Initializing SOPHIA server...");
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -42,28 +41,16 @@ app.post('/api/gemini/lesson', async (req, res) => {
       return res.status(500).json({ error: 'GEMINI_API_KEY is missing in server environment' });
     }
 
-    console.log(`Generating context-aware lesson for ${topic || category}...`);
-    
     const contextPrompt = contextHistory && contextHistory.length > 0 
-      ? `The user has recently studied: ${contextHistory.join(', ')}. Reference these previous concepts where appropriate to build a cohesive narrative of their cultural journey.`
+      ? `The user has recently studied: ${contextHistory.join(', ')}. Reference these previous concepts where appropriate.`
       : '';
 
-    const target = topic ? `the specific topic "${topic}" within the cultural context` : `the category "${category}"`;
+    const target = topic ? `the specific topic "${topic}"` : `the category "${category}"`;
 
     const response = await ai.models.generateContent({
       model: "gemini-1.5-flash",
-      contents: `Generate a MASSIVE, sophisticated, interactive daily lesson for a person seeking deep cultural enrichment.
-      Target: ${target}
-      Level: ${level}
-      ${contextPrompt}
-      
-      The lesson MUST be substantial (at least 800 words of content) and include:
-      1. A deep, scholarly title.
-      2. 5-6 paragraphs of rich, high-context historical and cultural background.
-      3. A detailed "Connoisseur's Guide" for a specific masterpiece or primary source.
-      4. 5 interactive quiz questions with sophisticated explanations.
-      5. 5 "Retention Points" (concise facts) for flashcard creation.
-      6. A "Connoisseur's Note" providing a provocative or rare insight for high-level conversation.`,
+      contents: `Generate a MASSIVE cultural lesson for: ${target}. Level: ${level}. ${contextPrompt}
+      Include: title, content (800 words), guide, quiz (5 questions), retentionPoints (5), note.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -101,24 +88,17 @@ app.post('/api/gemini/lesson', async (req, res) => {
     });
 
     let text = response.text || '{}';
-    console.log("AI Response received, length:", text.length);
-    
     if (text.includes('```')) {
       text = text.replace(/```json\n?/, '').replace(/\n?```/g, '');
     }
 
     try {
       const json = JSON.parse(text);
-      if (!json.title || !json.content) {
-        throw new Error("Missing required fields in AI response");
-      }
       res.json(json);
     } catch (parseError) {
-      console.error("Failed to parse Gemini response. Raw text:", text.slice(0, 500), "...");
-      res.status(500).json({ error: 'The archives are temporarily illegible. Please try again.' });
+      res.status(500).json({ error: 'Failed to parse AI response' });
     }
   } catch (error) {
-    console.error("Lesson generation error:", error);
     res.status(500).json({ error: 'Failed to generate lesson' });
   }
 });
@@ -130,35 +110,23 @@ app.post('/api/gemini/chat', async (req, res) => {
     const response = await ai.models.generateContent({
       model: "gemini-1.5-flash", 
       contents: [
-        { role: 'user', parts: [{ text: `You are a sophisticated, erudite cultural guide. Talk to the user about ${context}. Provide deep context, historical anecdotes, and encourage critical thinking. Keep the tone scholarly yet accessible, like a museum curator or an Oxford professor.` }] },
+        { role: 'user', parts: [{ text: `You are a sophisticated cultural guide for ${context}.` }] },
         ...history,
         { role: 'user', parts: [{ text: message }] }
       ]
     });
     res.json({ text: response.text });
   } catch (error) {
-    console.error("Chat error:", error);
     res.status(500).json({ error: 'Failed to chat' });
   }
 });
 
 // Weekly Reading List Generator
 app.post('/api/gemini/reading-list', async (req, res) => {
-  const fallbackList = [
-    { title: "The Odyssey", author: "Homer", description: "Epic foundation of Western literature.", significance: "Archetype for the hero's journey." },
-    { title: "Meditations", author: "Marcus Aurelius", description: "Stoic reflections by the Roman Emperor.", significance: "Classic of ethical philosophy." },
-    { title: "Divine Comedy", author: "Dante", description: "Visionary journey through the afterlife.", significance: "Established Italian literary tradition." }
-  ];
-
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      return res.json(fallbackList);
-    }
-
-    console.log("Generating reading list with Gemini...");
     const response = await ai.models.generateContent({
       model: "gemini-1.5-flash",
-      contents: "Generate a weekly curated reading list for cultural enrichment. Provide exactly 3 books. Each book must have a title, author, a sophisticated description, and its historical or cultural significance. Return ONLY the JSON array.",
+      contents: "Generate a curated reading list of 3 books for cultural enrichment. Return ONLY JSON.",
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -178,18 +146,16 @@ app.post('/api/gemini/reading-list', async (req, res) => {
     });
     
     let text = response.text || '[]';
-    if (text.trim().startsWith('```')) {
-      text = text.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+    if (text.includes('```')) {
+      text = text.replace(/```json\n?/, '').replace(/\n?```/g, '');
     }
-    
-    try {
-      const json = JSON.parse(text);
-      res.json(Array.isArray(json) ? json : fallbackList);
-    } catch (parseError) {
-      res.json(fallbackList);
-    }
+    res.json(JSON.parse(text));
   } catch (error) {
-    res.json(fallbackList);
+    res.json([
+      { title: "The Odyssey", author: "Homer", description: "Epic journey.", significance: "Foundation of literature." },
+      { title: "Meditations", author: "Marcus Aurelius", description: "Stoic thoughts.", significance: "Ethical classic." },
+      { title: "Divine Comedy", author: "Dante", description: "Afterlife vision.", significance: "Italian masterpiece." }
+    ]);
   }
 });
 
@@ -197,7 +163,7 @@ app.post('/api/gemini/reading-list', async (req, res) => {
 app.post('/api/gemini/analyze', async (req, res) => {
   const { image, text } = req.body;
   try {
-    const parts: any[] = [{ text: text || "Identify this cultural masterpiece and provide deep, sophisticated context." }];
+    const parts: any[] = [{ text: text || "Identify this cultural masterpiece." }];
     if (image) {
       parts.push({
         inlineData: {
@@ -219,6 +185,7 @@ app.post('/api/gemini/analyze', async (req, res) => {
 
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -260,11 +227,9 @@ async function startServer() {
   });
 }
 
-// Export for Vercel
 export default app;
 
-// Run standalone if direct
-const isDirect = import.meta.url === `file://${process.argv[1]}`;
-if (isDirect || process.env.RUN_STANDALONE) {
+// Only start the server if this file is run directly
+if (import.meta.url === `file://${process.argv[1]}` || process.env.RUN_STANDALONE) {
   startServer().catch(err => console.error("Server start error:", err));
 }
